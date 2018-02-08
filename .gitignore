@@ -2,3 +2,7 @@
 \.DS_Store
 
 mount/
+
+\.idea/
+
+traverser-filelist\.txt

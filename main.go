@@ -11,18 +11,20 @@ import (
 	"strings"
 )
 
-//@TODO
-//extension whitelists
-//output directory+filename arguments
+// Defines a list of valid filetypes for standard Source Engine directories
+var strictFiletypeStructure = map[string][]string{
+	"cfg" : {".cfg", ".txt"},
+	"maps" : {".txt"},
+	"materials" : {".vmt", ".vtf"},
+	"models" : {".mdl", ".phy", ".vtx", ".vvd"},
+	"particles" : {".pcf", ".txt"},
+	"resources" : {".dds", ".txt"},
+	"scripts" : {".lua", ".nut"},
+	"sound" : {".mp3", ".txt", ".wav"},
+}
 
 /**
- * @brief      Recursive read directory, build filepaths
- *
- * @param      path         The path
- * @param      directory    The directory
- * @param      filesToPack  The files to pack
- *
- * @return     { description_of_the_return_value }
+	Iterate through all files and child directories to build a list of files
  */
 func ParseDirectory(path string, directory string, filesToPack []string) []string {
 	files, err := ioutil.ReadDir(path)
@@ -30,10 +32,10 @@ func ParseDirectory(path string, directory string, filesToPack []string) []strin
 		log.Fatal(err)
 	}
 
+	// Recursively traverse directory
 	for _, f := range files {
-		// Recursively traverse directory
 		if f.IsDir() {
-			filesToPack = ParseDirectory(path+f.Name(), directory+f.Name()+"/", filesToPack)
+			filesToPack = ParseDirectory(path+f.Name() + "/", directory+f.Name()+"/", filesToPack)
 		} else {
 			filesToPack = append(filesToPack, directory+f.Name())
 		}
@@ -42,6 +44,9 @@ func ParseDirectory(path string, directory string, filesToPack []string) []strin
 	return filesToPack
 }
 
+/**
+	Create a new output file.
+ */
 func CreateOutputFile(filename string) *os.File {
 	// Create file
 	file, err := os.Create(filename)
@@ -52,6 +57,9 @@ func CreateOutputFile(filename string) *os.File {
 	return file
 }
 
+/**
+	Validates each file list entry before instructing to write
+ */
 func WriteFile(file *os.File, absoluteBasePath string, filesToPack []string, useStrict bool) {
 	// Write all lines to file
 	writer := bufio.NewWriter(file)
@@ -67,11 +75,17 @@ func WriteFile(file *os.File, absoluteBasePath string, filesToPack []string, use
 	writer.Flush()
 }
 
+/**
+	Write a single entry to file
+ */
 func WriteEntry(writer *bufio.Writer, line string) {
 	writer.WriteString(line + "\n")
 	fmt.Println("Add: " + line)
 }
 
+/**
+	Determines whether an entry is suitable to be written
+ */
 func ShouldDiscardFile(filename string, useStrict bool) bool {
 	// Always ignore
 	if strings.HasPrefix(filename, ".") {
@@ -79,21 +93,28 @@ func ShouldDiscardFile(filename string, useStrict bool) bool {
 	}
 
 	baseDirectory := strings.Split(filename, "/")
-	// We're in the base directory
+
+	// Treat all files as valid at top-level
 	if baseDirectory[0] == filename {
-		baseDirectory[0] = ""
+		return false
 	}
 
-	//lookup valid types
+	// Lookup if current directory has extension restrictions
+	if useStrict == true {
+		if _, ok := strictFiletypeStructure[baseDirectory[0]]; ok {
+			for _, validExtension := range strictFiletypeStructure[baseDirectory[0]] {
+				if filepath.Ext(filename) == validExtension {
+					return false
+				}
+			}
+			fmt.Println("Strict Ignored: " + filename + ". Found in directory: " + baseDirectory[0])
+			return true
+		}
+	}
 
 	return false
 }
 
-/**
- * @brief      Create a bspzip filelist.txt from a directory
- *
- * @return     { description_of_the_return_value }
- */
 func main() {
 	// Intro
 	fmt.Println("Galaco/DormantLemon's Bspzip Traversal tool")
