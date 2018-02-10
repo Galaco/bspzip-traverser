@@ -18,8 +18,8 @@ var strictFiletypeStructure = map[string][]string{
 	"materials" : {".vmt", ".vtf"},
 	"models" : {".mdl", ".phy", ".vtx", ".vvd"},
 	"particles" : {".pcf", ".txt"},
-	"resources" : {".dds", ".txt"},
-	"scripts" : {".lua", ".nut"},
+	"resource" : {".dds", ".txt"},
+	"scripts" : {".lua", ".nut", ".txt"},
 	"sound" : {".mp3", ".txt", ".wav"},
 }
 
@@ -68,8 +68,8 @@ func WriteFile(file *os.File, absoluteBasePath string, filesToPack []string, use
 		if ShouldDiscardFile(relativePath, useStrict) {
 			continue
 		}
-		WriteEntry(writer, relativePath)
-		WriteEntry(writer, absoluteBasePath+relativePath)
+		WriteEntry(writer, strings.Replace(relativePath, "/", "\\", -1))
+		WriteEntry(writer, strings.Replace(absoluteBasePath+relativePath, "/", "\\", -1))
 	}
 
 	writer.Flush()
@@ -123,7 +123,7 @@ func main() {
 	// Parse flags
 	targetFlag := flag.String("target", "", "Directory to generate filelist from.")
 	outputFlag := flag.String("output", "", "Output filelist path/filename")
-	useStrictFlag := flag.Bool("strict", true, "Ignore all unexpected filetypes within each directory")
+	useStrictFlag := flag.Bool("strict", false, "Ignore all unexpected filetypes within each directory")
 	flag.Parse()
 
 	// Assert valid usage
