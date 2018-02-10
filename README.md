@@ -1,7 +1,9 @@
 # bspzip-traverser
 Generate a bspzip filelist.txt from a directory for packing into a Source Engine .bsp
 
-Use your working directory however you like, Traverser can build a better and smaller filelist
+Use your working directory however you like, Traverser can build a better and smaller filelist.
+
+#####Provided executables are built with gox. You can either trust these builds, or build from source yourself (see below).
 
 
 # Usage
@@ -29,3 +31,6 @@ NOTE: Strict will allow all extensions in the top level directory, and any files
 
 ### Adding to Hammer as an automated build step
 @TODO
+
+### Building from source
+Assuming you have golang installed, simply run go build in the project directory.
