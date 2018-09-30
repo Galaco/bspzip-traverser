@@ -6,7 +6,7 @@ Use your working directory however you like, Traverser can build a better and sm
 #####Provided executables are built with gox. You can either trust these builds, or build from source yourself (see below).
 
 
-# Usage
+## Usage
 
 ### From command line
 #### Simple
@@ -30,7 +30,15 @@ Strict mode supports all known valid extensions per directory, so it will keep `
 NOTE: Strict will allow all extensions in the top level directory, and any files that are not part of an expected Source directory
 
 ### Adding to Hammer as an automated build step
-@TODO
+Assuming you know how to add build steps to Hammers build process (F9 then expert mode), all you have to do is:
+* Create a new executable step, and point it at `traverser_x86`.
+* Add the following as parameters: `-target=$path\mount -output=$path\$file-filelist.txt` (this assumes your /mount dir is the same location as your .vmf)
+
+Ensure you have another build step afterwards to pack the filelist with bspzip.
+* Create a new executable step, and point it at your games `bin/bspzip.exe`.
+* Add the following as parameters: `-addorupdatelist $path\$file.bsp $path\$file-filelist.txt $path\$file.bsp`
+
+Lastly, ensure both steps are after Vrad, but before Copy file default steps.
 
 ### Building from source
 Assuming you have golang installed, simply run go build in the project directory.
